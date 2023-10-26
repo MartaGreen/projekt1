@@ -33,10 +33,30 @@ void new_line(FILE** file) {
 }
 
 // otvorit subor
-int command_v(FILE** file) {
+int command_v(FILE** file, int pocet_zoznamov, char*** ids, char*** pozicie, char*** typy, double** hodnoty, char*** casy, char*** data) {
   *file = fopen("dataloger.txt", "r");
   int file_status = skontrolovat_subor(*file);
   if (!file_status) return 0;
+
+  char symbol;
+  if (!pocet_zoznamov) {
+    while ((symbol = getc(*file)) != EOF) {
+      printf("%c", symbol);
+    }
+    printf("\n");
+    to_file_start(*file);
+    return 1;
+  }
+
+  for (int i = 0; i < pocet_zoznamov; i++) {
+    printf("ID. mer. modulu: %s\n", (*ids)[i]);
+    printf("Pozícia modulu: %s\n", (*pozicie)[i]);
+    printf("Typ mer. veliciny: %s\n", (*typy)[i]);
+    printf("Hodnota: %lf\n", (*hodnoty)[i]);
+    printf("Cas merania: %s\n", (*casy)[i]);
+    printf("Datum merania: %s\n", (*data)[i]);
+    printf("\n");
+  }
 
   return 1;
 }
@@ -62,7 +82,7 @@ int command_n(FILE** file, char*** ids, char*** pozicie, char*** typy, double** 
   *typy = (char**)malloc(pocet_zoznamov * sizeof(char*));
   *hodnoty = (double*)malloc(pocet_zoznamov * sizeof(double));
   *casy = (char**)malloc(pocet_zoznamov * sizeof(char*));
-  *data = (char**)malloc(pocet_zoznamov * sizeof(char));
+  *data = (char**)malloc(pocet_zoznamov * sizeof(char*));
 
   int id_size = 6, pozicia_size = 14,
     typ_size = 2, cas_size = 4, datum_size = 8;
@@ -105,25 +125,30 @@ int command_n(FILE** file, char*** ids, char*** pozicie, char*** typy, double** 
     for (int j = 0; j < datum_size; j++) {
       (*data)[i][j] = getc(*file);
     }
+    new_line(&*file);
+    // preskocit prazdny riadok
+    new_line(&*file);
   }
 
   printf("pocet zaznaov %d\n", pocet_zoznamov);
+  return pocet_zoznamov;
 }
 
 int main() {
   char command;
   FILE* dataloger_file;
-  int v_stav, n_stav;
+  int v_stav, pocet_zoznamov = 0;
 
   char** ids, ** typy, ** pozicie, ** casy, ** data;
   double* hodnoty;
 
   do {
     scanf("%c", &command);
-    if (command == 'v') v_stav = command_v(&dataloger_file);
+    if (command == 'v') v_stav = command_v(&dataloger_file, pocet_zoznamov, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
     if (command == 'n') {
-      n_stav = command_n(&dataloger_file, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
-      printf("%s", data[0]);
+      pocet_zoznamov = command_n(&dataloger_file, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
+      for (int i = 0; i < pocet_zoznamov; i++) {
+      }
     }
 
   } while (command != 'k');
