@@ -42,7 +42,7 @@ int command_v(FILE** file) {
 }
 
 // vytvorenie dynamickych polii
-int command_n(FILE** file, char*** ids, char*** pozicie, char*** typy, double** hodnoty) {
+int command_n(FILE** file, char*** ids, char*** pozicie, char*** typy, double** hodnoty, char*** casy, char*** data) {
   int file_status = skontrolovat_subor(*file);
   if (!file_status) return 0;
 
@@ -61,10 +61,11 @@ int command_n(FILE** file, char*** ids, char*** pozicie, char*** typy, double** 
   *pozicie = (char**)malloc(pocet_zoznamov * sizeof(char*));
   *typy = (char**)malloc(pocet_zoznamov * sizeof(char*));
   *hodnoty = (double*)malloc(pocet_zoznamov * sizeof(double));
+  *casy = (char**)malloc(pocet_zoznamov * sizeof(char*));
+  *data = (char**)malloc(pocet_zoznamov * sizeof(char));
 
-  int id_size = 6;
-  int pozicia_size = 14;
-  int typ_size = 2;
+  int id_size = 6, pozicia_size = 14,
+    typ_size = 2, cas_size = 4, datum_size = 8;
 
   for (int i = 0; i < pocet_zoznamov; i++) {
     // praca s id
@@ -89,9 +90,21 @@ int command_n(FILE** file, char*** ids, char*** pozicie, char*** typy, double** 
     new_line(&*file);
 
     // praca s hodnotmi
-    double hodnota;
     fscanf(*file, "%lf", &(*hodnoty)[i]);
     new_line(&*file);
+
+    // praca s casom
+    (*casy)[i] = (char*)malloc(cas_size * sizeof(char));
+    for (int j = 0; j < cas_size; j++) {
+      (*casy)[i][j] = getc(*file);
+    }
+    new_line(&*file);
+
+    // praca s datami
+    (*data)[i] = (char*)malloc(datum_size * sizeof(char));
+    for (int j = 0; j < datum_size; j++) {
+      (*data)[i][j] = getc(*file);
+    }
   }
 
   printf("pocet zaznaov %d\n", pocet_zoznamov);
@@ -102,15 +115,15 @@ int main() {
   FILE* dataloger_file;
   int v_stav, n_stav;
 
-  char** ids, ** typy, ** pozicie;
+  char** ids, ** typy, ** pozicie, ** casy, ** data;
   double* hodnoty;
 
   do {
     scanf("%c", &command);
     if (command == 'v') v_stav = command_v(&dataloger_file);
     if (command == 'n') {
-      n_stav = command_n(&dataloger_file, &ids, &pozicie, &typy, &hodnoty);
-      printf("%s", pozicie[0]);
+      n_stav = command_n(&dataloger_file, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
+      printf("%s", data[0]);
     }
 
   } while (command != 'k');

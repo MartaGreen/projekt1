@@ -1,1 +1,1 @@
-hodnoty
+skontrolovat_subor
