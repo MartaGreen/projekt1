@@ -41,7 +41,8 @@ int command_v(FILE** file) {
   return 1;
 }
 
-int command_n(FILE** file, char*** ids) {
+// vytvorenie dynamickych polii
+int command_n(FILE** file, char*** ids, double** latitudy, double** longitudy) {
   int file_status = skontrolovat_subor(*file);
   if (!file_status) return 0;
 
@@ -56,8 +57,13 @@ int command_n(FILE** file, char*** ids) {
   to_file_start(*file);
 
   *ids = (char**)malloc(pocet_zoznamov * sizeof(char*));
+  *latitudy = (double*)malloc(pocet_zoznamov * sizeof(double));
+  *longitudy = (double*)malloc(pocet_zoznamov * sizeof(double));
 
   int id_size = 6;
+  int pozicia_size = 8;
+  char* latitude = (char*)malloc(pozicia_size * sizeof(char));
+  char* longitude = (char*)malloc(pozicia_size * sizeof(char));
 
   for (int i = 0; i < pocet_zoznamov; i++) {
     // praca s id
@@ -65,7 +71,29 @@ int command_n(FILE** file, char*** ids) {
     for (int j = 0; j < id_size; j++) {
       (*ids)[i][j] = getc(*file);
     }
+    new_line(&*file);
 
+    // praca s poziciami
+    for (int j = 0; j < pozicia_size; j++) {
+      if (j == 3) {
+        latitude[j] = '.';
+        j++;
+      }
+      latitude[j] = getc(*file);
+    }
+    for (int j = 0; j < pozicia_size; j++) {
+      if (j == 3) {
+        longitude[j] = '.';
+        j++;
+      }
+      longitude[j] = getc(*file);
+    }
+    (*latitudy)[i] = atof(latitude);
+    (*longitudy)[i] = atof(longitude);
+    if (i == 0) {
+      printf("latitude %c\nlongitude %c\n", latitude[0], longitude[0]);
+      printf("latitude %lf\nlongitude %lf\n", (*latitudy)[i], (*longitudy)[i]);
+    }
     new_line(&*file);
   }
 
@@ -78,16 +106,19 @@ int main() {
   int v_stav, n_stav;
 
   char** ids;
+  double* latitudy, * longitudy;
 
   do {
     scanf("%c", &command);
     if (command == 'v') v_stav = command_v(&dataloger_file);
     if (command == 'n') {
-      n_stav = command_n(&dataloger_file, &ids);
+      n_stav = command_n(&dataloger_file, &ids, &latitudy, &longitudy);
       printf("%s", ids[0]);
     }
+
   } while (command != 'k');
 
+  free(ids);
   fclose(dataloger_file);
   return 0;
   return 0;
