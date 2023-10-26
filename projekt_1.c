@@ -42,7 +42,7 @@ int command_v(FILE** file) {
 }
 
 // vytvorenie dynamickych polii
-int command_n(FILE** file, char*** ids, double** latitudy, double** longitudy, char*** typy, double** hodnoty) {
+int command_n(FILE** file, char*** ids, char*** pozicie, char*** typy, double** hodnoty) {
   int file_status = skontrolovat_subor(*file);
   if (!file_status) return 0;
 
@@ -58,16 +58,13 @@ int command_n(FILE** file, char*** ids, double** latitudy, double** longitudy, c
 
   // iniacilizacia dinamickych polii
   *ids = (char**)malloc(pocet_zoznamov * sizeof(char*));
-  *latitudy = (double*)malloc(pocet_zoznamov * sizeof(double));
-  *longitudy = (double*)malloc(pocet_zoznamov * sizeof(double));
+  *pozicie = (char**)malloc(pocet_zoznamov * sizeof(char*));
   *typy = (char**)malloc(pocet_zoznamov * sizeof(char*));
   *hodnoty = (double*)malloc(pocet_zoznamov * sizeof(double));
 
   int id_size = 6;
-  int pozicia_size = 8;
+  int pozicia_size = 14;
   int typ_size = 2;
-  char* latitude = (char*)malloc(pozicia_size * sizeof(char));
-  char* longitude = (char*)malloc(pozicia_size * sizeof(char));
 
   for (int i = 0; i < pocet_zoznamov; i++) {
     // praca s id
@@ -78,22 +75,10 @@ int command_n(FILE** file, char*** ids, double** latitudy, double** longitudy, c
     new_line(&*file);
 
     // praca s poziciami
+    (*pozicie)[i] = (char*)malloc(pozicia_size * sizeof(char));
     for (int j = 0; j < pozicia_size; j++) {
-      if (j == 3) {
-        latitude[j] = '.';
-        j++;
-      }
-      latitude[j] = getc(*file);
+      (*pozicie)[i][j] = getc(*file);
     }
-    for (int j = 0; j < pozicia_size; j++) {
-      if (j == 3) {
-        longitude[j] = '.';
-        j++;
-      }
-      longitude[j] = getc(*file);
-    }
-    (*latitudy)[i] = atof(latitude);
-    (*longitudy)[i] = atof(longitude);
     new_line(&*file);
 
     // praca s typmi
@@ -117,15 +102,15 @@ int main() {
   FILE* dataloger_file;
   int v_stav, n_stav;
 
-  char** ids, ** typy;
-  double* latitudy, * longitudy, * hodnoty;
+  char** ids, ** typy, ** pozicie;
+  double* hodnoty;
 
   do {
     scanf("%c", &command);
     if (command == 'v') v_stav = command_v(&dataloger_file);
     if (command == 'n') {
-      n_stav = command_n(&dataloger_file, &ids, &latitudy, &longitudy, &typy, &hodnoty);
-      printf("%lf", hodnoty[0]);
+      n_stav = command_n(&dataloger_file, &ids, &pozicie, &typy, &hodnoty);
+      printf("%s", pozicie[0]);
     }
 
   } while (command != 'k');
