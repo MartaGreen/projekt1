@@ -42,7 +42,7 @@ int command_v(FILE** file) {
 }
 
 // vytvorenie dynamickych polii
-int command_n(FILE** file, char*** ids, double** latitudy, double** longitudy) {
+int command_n(FILE** file, char*** ids, double** latitudy, double** longitudy, char*** typy) {
   int file_status = skontrolovat_subor(*file);
   if (!file_status) return 0;
 
@@ -56,12 +56,15 @@ int command_n(FILE** file, char*** ids, double** latitudy, double** longitudy) {
   pocet_zoznamov = (pocet_zoznamov + 1) / 7;
   to_file_start(*file);
 
+  // iniacilizacia dinamickych polii
   *ids = (char**)malloc(pocet_zoznamov * sizeof(char*));
   *latitudy = (double*)malloc(pocet_zoznamov * sizeof(double));
   *longitudy = (double*)malloc(pocet_zoznamov * sizeof(double));
+  *typy = (char**)malloc(pocet_zoznamov * sizeof(char*));
 
   int id_size = 6;
   int pozicia_size = 8;
+  int typ_size = 2;
   char* latitude = (char*)malloc(pozicia_size * sizeof(char));
   char* longitude = (char*)malloc(pozicia_size * sizeof(char));
 
@@ -90,9 +93,12 @@ int command_n(FILE** file, char*** ids, double** latitudy, double** longitudy) {
     }
     (*latitudy)[i] = atof(latitude);
     (*longitudy)[i] = atof(longitude);
-    if (i == 0) {
-      printf("latitude %c\nlongitude %c\n", latitude[0], longitude[0]);
-      printf("latitude %lf\nlongitude %lf\n", (*latitudy)[i], (*longitudy)[i]);
+    new_line(&*file);
+
+    // praca s typmi
+    (*typy)[i] = (char*)malloc(typ_size * sizeof(char));
+    for (int j = 0; j < typ_size; j++) {
+      (*typy)[i][j] = getc(*file);
     }
     new_line(&*file);
   }
@@ -105,15 +111,15 @@ int main() {
   FILE* dataloger_file;
   int v_stav, n_stav;
 
-  char** ids;
+  char** ids, ** typy;
   double* latitudy, * longitudy;
 
   do {
     scanf("%c", &command);
     if (command == 'v') v_stav = command_v(&dataloger_file);
     if (command == 'n') {
-      n_stav = command_n(&dataloger_file, &ids, &latitudy, &longitudy);
-      printf("%s", ids[0]);
+      n_stav = command_n(&dataloger_file, &ids, &latitudy, &longitudy, &typy);
+      printf("%s", typy[0]);
     }
 
   } while (command != 'k');
