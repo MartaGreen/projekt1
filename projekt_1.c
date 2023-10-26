@@ -42,7 +42,7 @@ int command_v(FILE** file) {
 }
 
 // vytvorenie dynamickych polii
-int command_n(FILE** file, char*** ids, double** latitudy, double** longitudy, char*** typy) {
+int command_n(FILE** file, char*** ids, double** latitudy, double** longitudy, char*** typy, double** hodnoty) {
   int file_status = skontrolovat_subor(*file);
   if (!file_status) return 0;
 
@@ -61,6 +61,7 @@ int command_n(FILE** file, char*** ids, double** latitudy, double** longitudy, c
   *latitudy = (double*)malloc(pocet_zoznamov * sizeof(double));
   *longitudy = (double*)malloc(pocet_zoznamov * sizeof(double));
   *typy = (char**)malloc(pocet_zoznamov * sizeof(char*));
+  *hodnoty = (double*)malloc(pocet_zoznamov * sizeof(double));
 
   int id_size = 6;
   int pozicia_size = 8;
@@ -101,6 +102,11 @@ int command_n(FILE** file, char*** ids, double** latitudy, double** longitudy, c
       (*typy)[i][j] = getc(*file);
     }
     new_line(&*file);
+
+    // praca s hodnotmi
+    double hodnota;
+    fscanf(*file, "%lf", &(*hodnoty)[i]);
+    new_line(&*file);
   }
 
   printf("pocet zaznaov %d\n", pocet_zoznamov);
@@ -112,14 +118,14 @@ int main() {
   int v_stav, n_stav;
 
   char** ids, ** typy;
-  double* latitudy, * longitudy;
+  double* latitudy, * longitudy, * hodnoty;
 
   do {
     scanf("%c", &command);
     if (command == 'v') v_stav = command_v(&dataloger_file);
     if (command == 'n') {
-      n_stav = command_n(&dataloger_file, &ids, &latitudy, &longitudy, &typy);
-      printf("%s", typy[0]);
+      n_stav = command_n(&dataloger_file, &ids, &latitudy, &longitudy, &typy, &hodnoty);
+      printf("%lf", hodnoty[0]);
     }
 
   } while (command != 'k');
