@@ -136,7 +136,7 @@ int command_n(FILE** file, char*** ids, char*** pozicie, char*** typy, double** 
 
 int main() {
   char command;
-  FILE* dataloger_file;
+  FILE* dataloger_file = NULL;
   int v_stav, pocet_zoznamov = 0;
 
   char** ids, ** typy, ** pozicie, ** casy, ** data;
