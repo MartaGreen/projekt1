@@ -32,6 +32,27 @@ void new_line(FILE** file) {
   }
 }
 
+// free memory functions
+
+void free_char_2D(char*** pole, int rows) {
+  for (int i = 0; i < rows; i++) {
+    free((*pole)[i]);
+  }
+  free(*pole);
+}
+void free_double_1D(double** pole) {
+  free(*pole);
+}
+
+void free_all_arrays(char*** ids, char*** pozicie, char*** typy, double** hodnoty, char*** casy, char*** data, int rows) {
+  free_char_2D(&*ids, rows);
+  free_char_2D(&*pozicie, rows);
+  free_char_2D(&*typy, rows);
+  free_double_1D(&*hodnoty);
+  free_char_2D(&*casy, rows);
+  free_char_2D(&*data, rows);
+}
+
 // otvorit subor
 int command_v(FILE** file, int pocet_zoznamov, char*** ids, char*** pozicie, char*** typy, double** hodnoty, char*** casy, char*** data) {
   *file = fopen("dataloger.txt", "r");
@@ -62,12 +83,22 @@ int command_v(FILE** file, int pocet_zoznamov, char*** ids, char*** pozicie, cha
 }
 
 // vytvorenie dynamickych polii
-int command_n(FILE** file, char*** ids, char*** pozicie, char*** typy, double** hodnoty, char*** casy, char*** data) {
+int command_n(FILE** file, int pocet_zoznamov, char*** ids, char*** pozicie, char*** typy, double** hodnoty, char*** casy, char*** data) {
   int file_status = skontrolovat_subor(*file);
   if (!file_status) return 0;
 
+  if (!pocet_zoznamov) {
+    printf("polia neboli vytvorene, vytvoram!\n");
+    printf("address ids check %p\n", &*ids);
+  }
+  else {
+    // printf("adres1 %p\n", &*ids);
+    printf("data from array %s\n", (*pozicie)[0]);
+    free_all_arrays(&*ids, &*pozicie, &*typy, &*hodnoty, &*casy, &*data, pocet_zoznamov);
+    printf("data from array %s\n", (*pozicie)[0]);
+  }
+
   char symbol;
-  int pocet_zoznamov = 0;
   while ((symbol = getc(*file)) != EOF) {
     if (symbol == '\n') {
       pocet_zoznamov++;
@@ -146,14 +177,15 @@ int main() {
     scanf("%c", &command);
     if (command == 'v') v_stav = command_v(&dataloger_file, pocet_zoznamov, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
     if (command == 'n') {
-      pocet_zoznamov = command_n(&dataloger_file, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
+      printf("address check %p\n", &ids);
+      pocet_zoznamov = command_n(&dataloger_file, pocet_zoznamov, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
       for (int i = 0; i < pocet_zoznamov; i++) {
       }
     }
 
   } while (command != 'k');
 
-  free(ids);
+  free_all_arrays(&ids, &pozicie, &typy, &hodnoty, &casy, &data, pocet_zoznamov);
   fclose(dataloger_file);
   return 0;
   return 0;

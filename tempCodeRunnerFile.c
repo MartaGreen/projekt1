@@ -1,1 +1,1 @@
-id_size
+free_all_arrays
