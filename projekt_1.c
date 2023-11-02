@@ -77,7 +77,6 @@ int find_ciachovanie(FILE** ciachovanie_file, char** id, int id_size, char** cia
     }
     if (counter == id_size) check_id[counter] = '\0';
 
-    printf("str1 str2: %s %s %d %d\n", *id, check_id, strcmp(*id, check_id), counter);
     if (counter == id_size && !strcmp(*id, check_id)) {
       char datum_char;
       for (int i = 0; i < ciachovanie_datum_size; i++) {
@@ -97,6 +96,22 @@ int find_ciachovanie(FILE** ciachovanie_file, char** id, int id_size, char** cia
   }
 
   return 0;
+}
+
+int compare_dates(char* date1, char* date2) {
+  int year1, month1, day1;
+  int year2, month2, day2;
+
+  sscanf(date1, "%4d%2d%2d", &year1, &month1, &day1);
+  sscanf(date2, "%4d%2d%2d", &year2, &month2, &day2);
+
+  int total_month1 = year1 * 12 + month1;
+  int total_month2 = year2 * 12 + month2;
+
+  int month_diff = total_month1 - total_month2;
+
+  if (month_diff < 0) return -month_diff;
+  return month_diff;
 }
 
 // otvorit subor
@@ -212,7 +227,7 @@ int command_n(FILE** file, int pocet_zoznamov, char*** ids, char*** pozicie, cha
   return pocet_zoznamov;
 }
 
-int command_c(int pocet_zoznamov, char*** ids) {
+int command_c(int pocet_zoznamov, char*** ids, char*** data) {
   if (!pocet_zoznamov) {
     printf("POlia neboli vytvorene!\n");
     return 0;
@@ -236,8 +251,13 @@ int command_c(int pocet_zoznamov, char*** ids) {
     ciachovanie_datum = (char*)malloc(ciachovanie_datum_size * sizeof(char));
     int ciachovanie = find_ciachovanie(&ciachovanie_file, &(*ids)[i], 5, &ciachovanie_datum, ciachovanie_datum_size);
 
-    if (!ciachovanie) printf("nie je take ciachovanie\n");
-    else printf("Nasla som ciachovaie. Datum: %s\n", ciachovanie_datum);
+    if (!ciachovanie) printf("ID. mer. modulu [%s] nie je ciachovany.\n", (*ids)[i]);
+    else {
+      int date_diff = compare_dates((*data)[i], ciachovanie_datum);
+      if (date_diff > y) {
+        printf("ID. mer. modulu [%s] má %d mesiacov po ciachovani\n", (*ids)[i], date_diff);
+      }
+    }
     free(ciachovanie_datum);
   }
 }
@@ -254,7 +274,7 @@ int main() {
     scanf("%c", &command);
     if (command == 'v') v_stav = command_v(&dataloger_file, pocet_zoznamov, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
     if (command == 'n') pocet_zoznamov = command_n(&dataloger_file, pocet_zoznamov, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
-    if (command == 'c') command_c(pocet_zoznamov, &ids);
+    if (command == 'c') command_c(pocet_zoznamov, &ids, &data);
 
   } while (command != 'k');
 
