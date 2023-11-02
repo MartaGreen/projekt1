@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // v mojom priklade pouzivam 0 ako vratanu hodnotu s chybou
 // 1 ako uspesu vratnu hodnotu
+
+// todo: recreate arrays str; add \0
 
 // kontroluje, ci subor bol otvoreny / uspesne otoreny
 int skontrolovat_subor(FILE* file) {
@@ -51,6 +54,49 @@ void free_all_arrays(char*** ids, char*** pozicie, char*** typy, double** hodnot
   free_double_1D(&*hodnoty);
   free_char_2D(&*casy, rows);
   free_char_2D(&*data, rows);
+}
+
+int find_ciachovanie(FILE** ciachovanie_file, char** id, int id_size, char** ciachovanie_datum, int ciachovanie_datum_size) {
+  char symbol;
+  int counter = 0;
+  char* check_id = (char*)malloc((id_size + 1) * sizeof(char));
+
+  while ((symbol = getc(*ciachovanie_file)) != EOF) {
+    if (symbol == '\n') {
+      new_line(&*ciachovanie_file);
+      counter = 0;
+      free(check_id);
+      check_id = (char*)malloc((id_size + 1) * sizeof(char));
+      continue;
+    }
+
+    if (counter < id_size) {
+      check_id[counter] = symbol;
+      counter++;
+      continue;
+    }
+    if (counter == id_size) check_id[counter] = '\0';
+
+    printf("str1 str2: %s %s %d %d\n", *id, check_id, strcmp(*id, check_id), counter);
+    if (counter == id_size && !strcmp(*id, check_id)) {
+      char datum_char;
+      for (int i = 0; i < ciachovanie_datum_size; i++) {
+        datum_char = getc(*ciachovanie_file);
+        (*ciachovanie_datum)[i] = datum_char;
+      }
+      free(check_id);
+      to_file_start(*ciachovanie_file);
+      return 1;
+    }
+    else {
+      counter = 0;
+      free(check_id);
+      check_id = (char*)malloc((id_size + 1) * sizeof(char));
+      continue;
+    }
+  }
+
+  return 0;
 }
 
 // otvorit subor
@@ -115,15 +161,16 @@ int command_n(FILE** file, int pocet_zoznamov, char*** ids, char*** pozicie, cha
   *casy = (char**)malloc(pocet_zoznamov * sizeof(char*));
   *data = (char**)malloc(pocet_zoznamov * sizeof(char*));
 
-  int id_size = 6, pozicia_size = 14,
+  int id_size = 5, pozicia_size = 14,
     typ_size = 2, cas_size = 4, datum_size = 8;
 
   for (int i = 0; i < pocet_zoznamov; i++) {
     // praca s id
-    (*ids)[i] = (char*)malloc(id_size * sizeof(char));
+    (*ids)[i] = (char*)malloc((id_size + 1) * sizeof(char));
     for (int j = 0; j < id_size; j++) {
       (*ids)[i][j] = getc(*file);
     }
+    (*ids)[i][id_size] = '\0';
     new_line(&*file);
 
     // praca s poziciami
@@ -165,6 +212,36 @@ int command_n(FILE** file, int pocet_zoznamov, char*** ids, char*** pozicie, cha
   return pocet_zoznamov;
 }
 
+int command_c(int pocet_zoznamov, char*** ids) {
+  if (!pocet_zoznamov) {
+    printf("POlia neboli vytvorene!\n");
+    return 0;
+  }
+
+  int y;
+
+  printf("Zadajte pocet mesiacov\n");
+  scanf("%d", &y);
+
+  FILE* ciachovanie_file = fopen("ciachovanie.txt", "r");
+  if (ciachovanie_file == NULL) {
+    printf("Nepodarilo sa otvorit subor\n");
+    return 0;
+  }
+
+  int ciachovanie_datum_size = 8;
+  char* ciachovanie_datum;
+
+  for (int i = 0; i < pocet_zoznamov; i++) {
+    ciachovanie_datum = (char*)malloc(ciachovanie_datum_size * sizeof(char));
+    int ciachovanie = find_ciachovanie(&ciachovanie_file, &(*ids)[i], 5, &ciachovanie_datum, ciachovanie_datum_size);
+
+    if (!ciachovanie) printf("nie je take ciachovanie\n");
+    else printf("Nasla som ciachovaie. Datum: %s\n", ciachovanie_datum);
+    free(ciachovanie_datum);
+  }
+}
+
 int main() {
   char command;
   FILE* dataloger_file = NULL;
@@ -176,12 +253,8 @@ int main() {
   do {
     scanf("%c", &command);
     if (command == 'v') v_stav = command_v(&dataloger_file, pocet_zoznamov, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
-    if (command == 'n') {
-      printf("address check %p\n", &ids);
-      pocet_zoznamov = command_n(&dataloger_file, pocet_zoznamov, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
-      for (int i = 0; i < pocet_zoznamov; i++) {
-      }
-    }
+    if (command == 'n') pocet_zoznamov = command_n(&dataloger_file, pocet_zoznamov, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
+    if (command == 'c') command_c(pocet_zoznamov, &ids);
 
   } while (command != 'k');
 
