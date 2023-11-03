@@ -1,1 +1,1 @@
-free_all_arrays
+    printf("%c", symbol);

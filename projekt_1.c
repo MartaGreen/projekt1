@@ -63,7 +63,6 @@ int find_ciachovanie(FILE** ciachovanie_file, char** id, int id_size, char** cia
 
   while ((symbol = getc(*ciachovanie_file)) != EOF) {
     if (symbol == '\n') {
-      new_line(&*ciachovanie_file);
       counter = 0;
       free(check_id);
       check_id = (char*)malloc((id_size + 1) * sizeof(char));
@@ -229,7 +228,7 @@ int command_n(FILE** file, int pocet_zoznamov, char*** ids, char*** pozicie, cha
 
 int command_c(int pocet_zoznamov, char*** ids, char*** data) {
   if (!pocet_zoznamov) {
-    printf("POlia neboli vytvorene!\n");
+    printf("Polia nie su vytvorene.!\n");
     return 0;
   }
 
