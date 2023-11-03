@@ -5,8 +5,6 @@
 // v mojom priklade pouzivam 0 ako vratanu hodnotu s chybou
 // 1 ako uspesu vratnu hodnotu
 
-// todo: recreate arrays str; add \0
-
 // kontroluje, ci subor bol otvoreny / uspesne otoreny
 int skontrolovat_subor(FILE* file) {
   if (file == NULL || !file) {
@@ -188,17 +186,19 @@ int command_n(FILE** file, int pocet_zoznamov, char*** ids, char*** pozicie, cha
     new_line(&*file);
 
     // praca s poziciami
-    (*pozicie)[i] = (char*)malloc(pozicia_size * sizeof(char));
+    (*pozicie)[i] = (char*)malloc((pozicia_size + 1) * sizeof(char));
     for (int j = 0; j < pozicia_size; j++) {
       (*pozicie)[i][j] = getc(*file);
     }
+    (*pozicie)[i][pozicia_size] = '\0';
     new_line(&*file);
 
     // praca s typmi
-    (*typy)[i] = (char*)malloc(typ_size * sizeof(char));
+    (*typy)[i] = (char*)malloc((typ_size + 1) * sizeof(char));
     for (int j = 0; j < typ_size; j++) {
       (*typy)[i][j] = getc(*file);
     }
+    (*typy)[i][typ_size] = '\0';
     new_line(&*file);
 
     // praca s hodnotmi
@@ -206,17 +206,19 @@ int command_n(FILE** file, int pocet_zoznamov, char*** ids, char*** pozicie, cha
     new_line(&*file);
 
     // praca s casom
-    (*casy)[i] = (char*)malloc(cas_size * sizeof(char));
+    (*casy)[i] = (char*)malloc((cas_size + 1) * sizeof(char));
     for (int j = 0; j < cas_size; j++) {
       (*casy)[i][j] = getc(*file);
     }
+    (*casy)[i][cas_size] = '\0';
     new_line(&*file);
 
     // praca s datami
-    (*data)[i] = (char*)malloc(datum_size * sizeof(char));
+    (*data)[i] = (char*)malloc((datum_size + 1) * sizeof(char));
     for (int j = 0; j < datum_size; j++) {
       (*data)[i][j] = getc(*file);
     }
+    (*data)[i][datum_size] = '\0';
     new_line(&*file);
     // preskocit prazdny riadok
     new_line(&*file);
@@ -259,6 +261,7 @@ int command_c(int pocet_zoznamov, char*** ids, char*** data) {
     }
     free(ciachovanie_datum);
   }
+  return 1;
 }
 
 int main() {
