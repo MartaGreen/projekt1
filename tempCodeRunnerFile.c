@@ -1,1 +1,1 @@
-    printf("%c", symbol);
+*counter

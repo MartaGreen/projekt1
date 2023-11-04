@@ -111,6 +111,30 @@ int compare_dates(char* date1, char* date2) {
   return month_diff;
 }
 
+int compare_typy(char** typ, char checked_typ[3]) {
+  if (!strcmp(*typ, checked_typ)) {
+    return 1;
+  }
+
+  return 0;
+}
+
+void find_min_max(double* min, double* max, double* checked_value, int* counter) {
+  (*counter)++;
+
+  if (*min == -1 && *max == -1) {
+    *min = *checked_value;
+    *max = *checked_value;
+  }
+
+  if (*min > *checked_value) *min = *checked_value;
+  if (*max < *checked_value) *max = *checked_value;
+}
+
+void print_table_row(char typ[2], int count, double min, double max) {
+  if (min != -1 && max != -1) printf("%7s %14d %14.2lf %9.2lf\n", typ, count, min, max);
+}
+
 // otvorit subor
 int command_v(FILE** file, int pocet_zoznamov, char*** ids, char*** pozicie, char*** typy, double** hodnoty, char*** casy, char*** data) {
   *file = fopen("dataloger.txt", "r");
@@ -264,6 +288,61 @@ int command_c(int pocet_zoznamov, char*** ids, char*** data) {
   return 1;
 }
 
+int command_h(int pocet_zaznamov, char vsetky_typy[6][3], char*** typy, double** hodnoty) {
+  if (!pocet_zaznamov) {
+    printf("Polia nie su vytvorene.\n");
+    return 0;
+  }
+
+  double rd_min = -1, rd_max = -1,
+    rm_min = -1, rm_max = -1,
+    ro_min = -1, ro_max = -1,
+    pi_min = -1, pi_max = -1,
+    pe_min = -1, pe_max = -1,
+    pa_min = -1, pa_max = -1;
+  int rd_count = 0, rm_count = 0, ro_count = 0,
+    pi_count = 0, pe_count = 0, pa_count = 0;
+
+  for (int i = 0; i < pocet_zaznamov; i++) {
+    char* current_typ = (*typy)[i];
+    double hodnota = (*hodnoty)[i];
+
+    if (compare_typy(&current_typ, vsetky_typy[0])) {
+      find_min_max(&rd_min, &rd_max, &hodnota, &rd_count);
+      continue;
+    }
+    if (compare_typy(&current_typ, vsetky_typy[1])) {
+      find_min_max(&rm_min, &rm_max, &hodnota, &rm_count);
+      continue;
+    }
+    if (compare_typy(&current_typ, vsetky_typy[2])) {
+      find_min_max(&ro_min, &ro_max, &hodnota, &ro_count);
+      continue;
+    }
+    if (compare_typy(&current_typ, vsetky_typy[3])) {
+      find_min_max(&pi_min, &pi_max, &hodnota, &pi_count);
+      continue;
+    }
+    if (compare_typy(&current_typ, vsetky_typy[4])) {
+      find_min_max(&pe_min, &pe_max, &hodnota, &pe_count);
+      continue;
+    }
+    if (compare_typy(&current_typ, vsetky_typy[5])) {
+      find_min_max(&pa_min, &pa_max, &hodnota, &pa_count);
+      continue;
+    }
+  }
+
+  printf("%-16s %-12s %-9s %-9s\n", "Typ mer. vel.", "Pocetnost", "Minimum", "Maximum");
+
+  print_table_row(vsetky_typy[0], rd_count, rd_min, rd_max);
+  print_table_row(vsetky_typy[1], rm_count, rm_min, rm_max);
+  print_table_row(vsetky_typy[2], ro_count, ro_min, ro_max);
+  print_table_row(vsetky_typy[3], pi_count, pi_min, pi_max);
+  print_table_row(vsetky_typy[4], pe_count, pe_min, pe_max);
+  print_table_row(vsetky_typy[5], pa_count, pa_min, pa_max);
+}
+
 int main() {
   char command;
   FILE* dataloger_file = NULL;
@@ -272,11 +351,14 @@ int main() {
   char** ids, ** typy, ** pozicie, ** casy, ** data;
   double* hodnoty;
 
+  char vsetky_typy[6][3] = { "RD\0", "RM\0", "RO\0", "PI\0", "PE\0", "PA\0" };
+
   do {
     scanf("%c", &command);
     if (command == 'v') v_stav = command_v(&dataloger_file, pocet_zoznamov, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
     if (command == 'n') pocet_zoznamov = command_n(&dataloger_file, pocet_zoznamov, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
     if (command == 'c') command_c(pocet_zoznamov, &ids, &data);
+    if (command == 'h') command_h(pocet_zoznamov, vsetky_typy, &typy, &hodnoty);
 
   } while (command != 'k');
 
