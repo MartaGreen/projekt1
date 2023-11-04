@@ -343,6 +343,46 @@ int command_h(int pocet_zaznamov, char vsetky_typy[6][3], char*** typy, double**
   print_table_row(vsetky_typy[5], pa_count, pa_min, pa_max);
 }
 
+int command_z(FILE** orig_file, int pocet_zoznamov, char*** ids, char*** pozicie, char*** typy, double** hodnoty, char*** casy, char*** data) {
+  if (!pocet_zoznamov) {
+    printf("Polia nie su vytvorene.\n");
+    return 1;
+  }
+
+  char orig_name[] = "dataloger.txt\0";
+  char copy_name[] = "dataloger_copy.txt\0";
+  FILE* file_copy = fopen(copy_name, "w");
+
+  char id[6];
+  scanf("%s", id);
+  int removed_counter = 0;
+
+  for (int i = 0; i < pocet_zoznamov; i++) {
+    if (!strcmp((*ids)[i], id)) {
+      removed_counter++;
+      continue;
+    }
+
+    fprintf(file_copy, "%s\n", (*ids)[i]);
+    fprintf(file_copy, "%s\n", (*pozicie)[i]);
+    fprintf(file_copy, "%s\n", (*typy)[i]);
+    fprintf(file_copy, "%lf\n", (*hodnoty)[i]);
+    fprintf(file_copy, "%s\n", (*casy)[i]);
+    fprintf(file_copy, "%s\n", (*data)[i]);
+    fprintf(file_copy, "%s", "\n");
+  }
+
+  fclose(file_copy);
+  fclose(*orig_file);
+  remove(orig_name);
+  *orig_file = freopen(orig_name, "r", *orig_file);
+  rename(copy_name, orig_name);
+
+  printf("Vymazalo sa : %d zaznamov !", removed_counter);
+
+  return 1;
+}
+
 int main() {
   char command;
   FILE* dataloger_file = NULL;
@@ -359,6 +399,7 @@ int main() {
     if (command == 'n') pocet_zoznamov = command_n(&dataloger_file, pocet_zoznamov, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
     if (command == 'c') command_c(pocet_zoznamov, &ids, &data);
     if (command == 'h') command_h(pocet_zoznamov, vsetky_typy, &typy, &hodnoty);
+    if (command == 'z') command_z(&dataloger_file, pocet_zoznamov, &ids, &pozicie, &typy, &hodnoty, &casy, &data);
 
   } while (command != 'k');
 
