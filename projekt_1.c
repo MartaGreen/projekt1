@@ -11,7 +11,7 @@ int skontrolovat_subor(FILE* file) {
     printf("Neotvoreny subor.\n");
     return 0;
   }
-  printf("Subor bol uspesne otvoreny\n");
+
   return 1;
 }
 
@@ -34,7 +34,6 @@ void new_line(FILE** file) {
 }
 
 // free memory functions
-
 void free_char_2D(char*** pole, int rows) {
   for (int i = 0; i < rows; i++) {
     free((*pole)[i]);
@@ -44,7 +43,6 @@ void free_char_2D(char*** pole, int rows) {
 void free_double_1D(double** pole) {
   free(*pole);
 }
-
 void free_all_arrays(char*** ids, char*** pozicie, char*** typy, double** hodnoty, char*** casy, char*** data, int rows) {
   free_char_2D(&*ids, rows);
   free_char_2D(&*pozicie, rows);
@@ -169,24 +167,20 @@ int command_n(FILE** file, int pocet_zoznamov, char*** ids, char*** pozicie, cha
   int file_status = skontrolovat_subor(*file);
   if (!file_status) return 0;
 
-  if (!pocet_zoznamov) {
-    printf("polia neboli vytvorene, vytvoram!\n");
-    printf("address ids check %p\n", &*ids);
-  }
-  else {
-    // printf("adres1 %p\n", &*ids);
-    printf("data from array %s\n", (*pozicie)[0]);
+  if (pocet_zoznamov) {
     free_all_arrays(&*ids, &*pozicie, &*typy, &*hodnoty, &*casy, &*data, pocet_zoznamov);
-    printf("data from array %s\n", (*pozicie)[0]);
   }
 
   char symbol;
+  pocet_zoznamov = 0;
   while ((symbol = getc(*file)) != EOF) {
     if (symbol == '\n') {
       pocet_zoznamov++;
     }
   }
+  printf("prvy pocet %d\n", pocet_zoznamov);
   pocet_zoznamov = (pocet_zoznamov + 1) / 7;
+  printf("prvy pocet %d\n", pocet_zoznamov);
   to_file_start(*file);
 
   // iniacilizacia dinamickych polii
@@ -248,7 +242,6 @@ int command_n(FILE** file, int pocet_zoznamov, char*** ids, char*** pozicie, cha
     new_line(&*file);
   }
 
-  printf("pocet zaznaov %d\n", pocet_zoznamov);
   return pocet_zoznamov;
 }
 
@@ -259,8 +252,6 @@ int command_c(int pocet_zoznamov, char*** ids, char*** data) {
   }
 
   int y;
-
-  printf("Zadajte pocet mesiacov\n");
   scanf("%d", &y);
 
   FILE* ciachovanie_file = fopen("ciachovanie.txt", "r");
@@ -341,6 +332,7 @@ int command_h(int pocet_zaznamov, char vsetky_typy[6][3], char*** typy, double**
   print_table_row(vsetky_typy[3], pi_count, pi_min, pi_max);
   print_table_row(vsetky_typy[4], pe_count, pe_min, pe_max);
   print_table_row(vsetky_typy[5], pa_count, pa_min, pa_max);
+  return 1
 }
 
 int command_z(FILE** orig_file, int pocet_zoznamov, char*** ids, char*** pozicie, char*** typy, double** hodnoty, char*** casy, char*** data) {
@@ -375,10 +367,10 @@ int command_z(FILE** orig_file, int pocet_zoznamov, char*** ids, char*** pozicie
   fclose(file_copy);
   fclose(*orig_file);
   remove(orig_name);
-  *orig_file = freopen(orig_name, "r", *orig_file);
   rename(copy_name, orig_name);
+  *orig_file = freopen(orig_name, "r", *orig_file);
 
-  printf("Vymazalo sa : %d zaznamov !", removed_counter);
+  printf("Vymazalo sa : %d zaznamov !\n", removed_counter);
 
   return 1;
 }
